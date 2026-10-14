@@ -17,6 +17,7 @@ class AppManager:
         self.apps = self._load_apps(config_path)
         self.last_action_time = 0.0
         self.action_cooldown = 0.7  # Prevent accidental double-firing
+        self.last_minimized_hwnd = None
 
     def _detect_os(self) -> str:
         if sys.platform == "darwin":
@@ -100,6 +101,108 @@ class AppManager:
         except Exception as e:
             print(f"[AppManager] Error closing window: {e}")
             return False
+
+    def minimize_active_window(self) -> bool:
+        """Minimizes active foreground window on fist gesture and tracks its HWND."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.40:
+            return False
+
+        try:
+            if self.os_type == "win":
+                import ctypes
+                user32 = ctypes.windll.user32
+                hwnd = user32.GetForegroundWindow()
+                if hwnd:
+                    self.last_minimized_hwnd = hwnd
+                    user32.ShowWindow(hwnd, 6)  # SW_MINIMIZE = 6
+                    self.last_action_time = curr_time
+                    print(f"[AppManager] Minimized window: {hwnd}")
+                    return True
+            else:
+                pyautogui.hotkey("win", "down")
+                self.last_action_time = curr_time
+                return True
+        except Exception as e:
+            print(f"[AppManager] Error minimizing window: {e}")
+        return False
+
+    def restore_last_minimized_window(self) -> bool:
+        """Restores the last minimized window when hand expands from a fist."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.40:
+            return False
+
+        try:
+            if self.os_type == "win":
+                import ctypes
+                user32 = ctypes.windll.user32
+                if self.last_minimized_hwnd and user32.IsWindow(self.last_minimized_hwnd):
+                    user32.ShowWindow(self.last_minimized_hwnd, 9)  # SW_RESTORE = 9
+                    user32.SetForegroundWindow(self.last_minimized_hwnd)
+                    print(f"[AppManager] Restored window: {self.last_minimized_hwnd}")
+                    self.last_minimized_hwnd = None
+                    self.last_action_time = curr_time
+                    return True
+                else:
+                    pyautogui.hotkey("alt", "shift", "tab")
+                    self.last_action_time = curr_time
+                    return True
+            else:
+                pyautogui.hotkey("alt", "tab")
+                self.last_action_time = curr_time
+                return True
+        except Exception as e:
+            print(f"[AppManager] Error restoring window: {e}")
+        return False
+
+    def maximize_active_window(self) -> bool:
+        """Expands / Maximizes the active window (Thumb & Index expand)."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.50:
+            return False
+
+        try:
+            if self.os_type == "win":
+                import ctypes
+                user32 = ctypes.windll.user32
+                hwnd = user32.GetForegroundWindow()
+                if hwnd:
+                    user32.ShowWindow(hwnd, 3)  # SW_MAXIMIZE = 3
+                    self.last_action_time = curr_time
+                    print(f"[AppManager] Maximized window: {hwnd}")
+                    return True
+            else:
+                pyautogui.hotkey("win", "up")
+                self.last_action_time = curr_time
+                return True
+        except Exception as e:
+            print(f"[AppManager] Error maximizing window: {e}")
+        return False
+
+    def shrink_active_window(self) -> bool:
+        """Shrinks / Restores the active window from maximize (Thumb & Index shrink)."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.50:
+            return False
+
+        try:
+            if self.os_type == "win":
+                import ctypes
+                user32 = ctypes.windll.user32
+                hwnd = user32.GetForegroundWindow()
+                if hwnd:
+                    user32.ShowWindow(hwnd, 9)  # SW_RESTORE = 9
+                    self.last_action_time = curr_time
+                    print(f"[AppManager] Shrunk/Restored window: {hwnd}")
+                    return True
+            else:
+                pyautogui.hotkey("win", "down")
+                self.last_action_time = curr_time
+                return True
+        except Exception as e:
+            print(f"[AppManager] Error shrinking window: {e}")
+        return False
 
     def switch_app(self) -> bool:
         """Triggers native Alt+Tab / Cmd+Tab to switch active applications."""

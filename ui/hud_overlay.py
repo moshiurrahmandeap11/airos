@@ -125,45 +125,57 @@ class HUDOverlay:
         cursor_px: Optional[Tuple[int, int]],
     ) -> Optional[str]:
         """
-        Renders Left-Hand App Launcher Dock.
+        Renders sleek Windows Start Menu / Vision Pro style App Control Center.
         Returns app_key if hovered cursor is currently over it.
         """
         h, w, _ = frame.shape
-        dock_w = 170
-        dock_x = 20
-        dock_y = 60
-        tile_h = 48
-        gap = 8
+        menu_w = 440
+        menu_h = 320
+        menu_x = 40
+        menu_y = (h - menu_h) // 2
 
         hovered_app_key = None
 
+        # Frosted glass panel backdrop
         overlay = frame.copy()
-        total_dock_h = len(apps) * (tile_h + gap) + 40
-        cv2.rectangle(
-            overlay,
-            (dock_x - 10, dock_y - 30),
-            (dock_x + dock_w + 10, dock_y + total_dock_h - 20),
-            (25, 25, 30),
-            -1,
-        )
-        cv2.addWeighted(overlay, 0.70, frame, 0.30, 0, frame)
+        cv2.rectangle(overlay, (menu_x, menu_y), (menu_x + menu_w, menu_y + menu_h), (20, 22, 28), -1)
+        cv2.addWeighted(overlay, 0.85, frame, 0.15, 0, frame)
+        cv2.rectangle(frame, (menu_x, menu_y), (menu_x + menu_w, menu_y + menu_h), (0, 180, 255), 2)
 
-        # Title
+        # Header Title
         cv2.putText(
             frame,
-            "APP LAUNCHER",
-            (dock_x, dock_y - 10),
+            "WINDOWS APP MENU",
+            (menu_x + 24, menu_y + 38),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.50,
-            (0, 220, 255),
+            0.70,
+            (0, 235, 255),
             2,
         )
+        cv2.putText(
+            frame,
+            "Point & Pinch to Launch",
+            (menu_x + 24, menu_y + 62),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (170, 170, 190),
+            1,
+        )
+
+        # 2-Column Grid Layout for App Tiles
+        start_y = menu_y + 80
+        col_w = (menu_w - 60) // 2
+        tile_h = 56
+        gap_x = 16
+        gap_y = 14
 
         for i, app in enumerate(apps):
-            y1 = dock_y + i * (tile_h + gap)
+            col = i % 2
+            row = i // 2
+            x1 = menu_x + 22 + col * (col_w + gap_x)
+            y1 = start_y + row * (tile_h + gap_y)
+            x2 = x1 + col_w
             y2 = y1 + tile_h
-            x1 = dock_x
-            x2 = dock_x + dock_w
 
             is_hovered = False
             if cursor_px:
@@ -172,23 +184,35 @@ class HUDOverlay:
                     is_hovered = True
                     hovered_app_key = app["key"]
 
-            # Background
-            bg_color = (60, 140, 240) if is_hovered else (45, 45, 55)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), bg_color, -1)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (100, 100, 120), 1)
+            # Visual Tile
+            if is_hovered:
+                # Vibrant hover glow
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (230, 130, 20), -1)  # Vivid Cyan-Blue
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 3)   # Neon Yellow border
+            else:
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (40, 42, 52), -1)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (75, 80, 95), 1)
 
-            # Label
+            # Icon & Name
             label = f"{app['icon']} {app['name']}"
+            text_color = (255, 255, 255) if is_hovered else (210, 215, 225)
             cv2.putText(
                 frame,
                 label,
-                (x1 + 12, y1 + 30),
+                (x1 + 14, y1 + 35),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.55,
-                (255, 255, 255),
+                0.60,
+                text_color,
                 2 if is_hovered else 1,
             )
 
+        # Draw Laser Aiming Reticle at cursor position
+        if cursor_px:
+            cx, cy = cursor_px
+            cv2.circle(frame, (cx, cy), 14, (0, 255, 255), 2)
+            cv2.circle(frame, (cx, cy), 3, (0, 255, 0), -1)
+            cv2.line(frame, (cx - 18, cy), (cx + 18, cy), (0, 255, 255), 1)
+            cv2.line(frame, (cx, cy - 18), (cx, cy + 18), (0, 255, 255), 1)
         return hovered_app_key
 
     def draw_virtual_keyboard(
@@ -210,6 +234,17 @@ class HUDOverlay:
             kb_y2 = max(k.y2 for k in layout.keys) + 14
             cv2.rectangle(overlay, (kb_x1, kb_y1), (kb_x2, kb_y2), (20, 20, 25), -1)
 
+            # Exit Guide Header
+            cv2.putText(
+                frame,
+                "AIR KEYBOARD | Pinch [Close], Show Peace or Fist, or Press ESC to Exit",
+                (kb_x1 + 8, kb_y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.48,
+                (0, 235, 255),
+                1,
+            )
+
         # Draw individual keys on overlay
         hovered_set = {k.char for k, _ in hovered_keys}
         pressed_char = pressed_key.char if pressed_key else None
@@ -219,6 +254,8 @@ class HUDOverlay:
                 key_color = self.COLOR_PRESSED
             elif key.char in hovered_set:
                 key_color = self.COLOR_HOVER
+            elif key.char == "CLOSE":
+                key_color = (40, 40, 140)  # Coral-red for Close key
             elif key.is_special:
                 key_color = (65, 55, 75)
             else:

@@ -57,9 +57,8 @@ class VirtualKeyboardManager:
             if key:
                 status["hovered_keys"].append((key, label))
 
-                # Check trigger: Pinching index+thumb while hovering over key
-                # Or air-tap (depth z < threshold)
-                is_pinching = hand.is_pinching(HandLandmarkIndex.INDEX_FINGER_TIP, threshold_ratio=0.30)
+                # Check trigger: Pinching index+thumb while hovering over key (deliberate 0.28 ratio)
+                is_pinching = hand.is_pinching(HandLandmarkIndex.INDEX_FINGER_TIP, threshold_ratio=0.28)
 
                 if is_pinching:
                     if curr_time - self.last_press_time > self.cooldown_sec:

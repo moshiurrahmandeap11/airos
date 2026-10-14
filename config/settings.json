@@ -2,20 +2,21 @@
   "camera": {
     "source": 0,
     "droidcam_ip": "192.168.0.144",
+    "mirror_camera": false,
     "width": 1280,
     "height": 720,
     "fps": 30
   },
   "tracker": {
     "max_num_hands": 2,
-    "min_detection_confidence": 0.7,
-    "min_tracking_confidence": 0.6
+    "min_detection_confidence": 0.58,
+    "min_tracking_confidence": 0.50
   },
   "mouse": {
-    "active_area_padding": 0.15,
+    "active_area_padding": 0.12,
     "smoother_alpha": 0.35,
     "pinch_threshold_ratio": 0.055,
-    "click_cooldown_sec": 0.25,
+    "click_cooldown_sec": 0.20,
     "scroll_sensitivity": 1.5
   },
   "keyboard": {
@@ -26,35 +27,35 @@
   "apps": {
     "browser": {
       "name": "Browser",
-      "icon": "🌐",
+      "icon": "[WEB]",
       "win": "start https://google.com",
       "mac": "open -a Safari",
       "linux": "xdg-open https://google.com"
     },
     "terminal": {
       "name": "Terminal",
-      "icon": "💻",
+      "icon": "[CMD]",
       "win": "start powershell",
       "mac": "open -a Terminal",
       "linux": "x-terminal-emulator"
     },
     "explorer": {
       "name": "Files",
-      "icon": "📁",
+      "icon": "[FILE]",
       "win": "explorer",
       "mac": "open -a Finder",
       "linux": "xdg-open ."
     },
     "notepad": {
       "name": "Notes",
-      "icon": "📝",
+      "icon": "[NOTE]",
       "win": "notepad",
       "mac": "open -a TextEdit",
       "linux": "gedit"
     },
     "calculator": {
       "name": "Calculator",
-      "icon": "🧮",
+      "icon": "[CALC]",
       "win": "calc",
       "mac": "open -a Calculator",
       "linux": "gnome-calculator"

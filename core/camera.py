@@ -11,23 +11,34 @@ class CameraManager:
 
     def __init__(self, config_path: str = "config/settings.json"):
         self.config_path = config_path
-        self.source = self._load_source()
+        self.source = 0
+        self.mirror_camera = False
+        self.target_width = 1280
+        self.target_height = 720
+        self._load_settings()
         self.cap: Optional[cv2.VideoCapture] = None
         self.is_green_placeholder = False
 
-    def _load_source(self) -> Union[int, str]:
+    def _load_settings(self):
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
-                    cfg = json.load(f).get("camera", {})
+                    data = json.load(f)
+                    cfg = data.get("camera", {})
                     src = cfg.get("source", 0)
-                    # If user specified an IP or URL string
                     if isinstance(src, str) and src.isdigit():
-                        return int(src)
-                    return src
-            except Exception:
-                pass
-        return 0
+                        src = int(src)
+                    self.source = src
+                    self.mirror_camera = cfg.get("mirror_camera", False)
+                    self.target_width = cfg.get("width", 1280)
+                    self.target_height = cfg.get("height", 720)
+            except Exception as e:
+                print(f"[CameraManager] Error reading config: {e}")
+
+    def toggle_mirror(self) -> bool:
+        self.mirror_camera = not self.mirror_camera
+        print(f"[CameraManager] Mirror camera toggled to: {self.mirror_camera}")
+        return self.mirror_camera
 
     def open(self, width: int = 1280, height: int = 720) -> Tuple[bool, int, int]:
         """Attempts to open the configured camera source."""

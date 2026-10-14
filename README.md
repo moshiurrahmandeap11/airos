@@ -34,26 +34,39 @@ python main.py
 
 | Hand | Gesture | Action |
 | :--- | :--- | :--- |
-| **Right Hand** | 👉 Point Index Finger | Move Mouse Cursor |
-| **Right Hand** | 👌 Index + Thumb Pinch | Left Click |
-| **Right Hand** | 🤏 Pinch & Hold (>0.35s) | Click & Drag |
+| **Right Hand** | 👉 Point Index Finger (1 finger) | Move Mouse Cursor (Super smooth, zero mistouch) |
+| **Right Hand** | 👌 Index + Thumb Pinch (deliberate) | Instant Left Click |
 | **Right Hand** | ✌️ Middle + Thumb Pinch | Right Click |
 | **Right Hand** | ✌️ Index + Middle Together | Scroll Up / Down |
-| **Right Hand** | ✌️ Peace Sign | Switch Applications (`Alt+Tab` / `Cmd+Tab`) |
-| **Right Hand** | 🖐️ 3 Fingers Swipe Left | **Switch Desktop Left** (`Ctrl+Win+Left`) ⬅️ |
-| **Right Hand** | 🖐️ 3 Fingers Swipe Right| **Switch Desktop Right** (`Ctrl+Win+Right`) ➡️ |
-| **Left Hand** | 🖐️ Open Palm facing camera | Show Floating App Launcher Dock |
-| **Left + Right**| 🖐️ Dock Open + 👉 Point & 👌 Pinch | Launch Hovered App |
+| **Right Hand** | ✊ Closed Fist (Hold 0.35s) | **Minimize Active App** 🗕 |
+| **Right Hand** | 🖐️ Expand Hand (from Fist) | **Restore Last Minimized App** 🗖 |
+| **Right Hand** | 🤏 $\rightarrow$ 👈 Thumb + Index Expand | **Maximize Window (Boro hobe)** 🗖 |
+| **Right Hand** | 👈 $\rightarrow$ 🤏 Thumb + Index Shrink | **Restore / Shrink Window (Choto hobe)** 🗗 |
+| **Right Hand** | 🖐️ 4 or 5 Fingers Swipe Left | **Switch Desktop Left** (`Ctrl+Win+Left`) ⬅️ |
+| **Right Hand** | 🖐️ 4 or 5 Fingers Swipe Right| **Switch Desktop Right** (`Ctrl+Win+Right`) ➡️ |
+| **Right Hand** | ✌️ Peace Sign (Hold 0.4s) | Switch Applications (`Alt+Tab` / `Cmd+Tab`) |
+| **Left Hand** | 🖐️ Open Palm facing camera | Show Windows App Launcher Menu |
+| **Left + Right**| 🖐️ Menu Open + 👉 Point & 👌 Pinch | Launch Hovered App |
 | **Left Hand** | ✌️ Peace Sign | Toggle Virtual Air Keyboard |
-| **Either Hand** | ✊ Hold Fist for 1.5s | Toggle Safety Sleep / Active Mode |
 
 ---
 
 ## ⌨️ Hotkeys in Camera Window
 
+* `M` — Toggle Camera Horizontal Mirror (Normal / Flipped) — *Fixes backwards DroidCam*
+* `H` — Swap Left and Right hand assignment
 * `K` — Toggle Virtual Air Keyboard on/off
 * `S` — Toggle Safety Sleep mode on/off
-* `Q` or `ESC` — Safely exit the application
+* `ESC` — Exit keyboard mode (if open) or quit application
+* `Q` — Safely exit the application
+
+---
+
+## 🛡️ Built-in Protections
+
+* **Physical Mouse Auto-Yield:** Whenever you touch or move your real mouse or keyboard, gesture control immediately yields for 1.2 seconds so you are never locked out.
+* **Cheek & Face False-Positive Filter:** Biomechanical palm aspect and knuckle validation completely prevents faces, cheeks, or background textures from triggering phantom clicks.
+* **Rotation-Invariant 3D Tracking:** Detects 1, 2, 3, 4, 5 fingers accurately at any hand tilt.
 
 ---
 
