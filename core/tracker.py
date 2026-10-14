@@ -122,9 +122,9 @@ class DualHandTracker:
         max_num_hands: int = 2,
         min_detection_confidence: float = 0.7,
         min_tracking_confidence: float = 0.6,
-        mirrored_camera: bool = True,
+        swap_hands: bool = False,
     ):
-        self.mirrored_camera = mirrored_camera
+        self.swap_hands = swap_hands
         self.model_path = model_path
         self._ensure_model_exists()
 
@@ -138,6 +138,11 @@ class DualHandTracker:
             min_tracking_confidence=min_tracking_confidence,
         )
         self.landmarker = vision.HandLandmarker.create_from_options(options)
+
+    def toggle_swap_hands(self) -> bool:
+        self.swap_hands = not self.swap_hands
+        print(f"[DualHandTracker] Swapped hands mode: {self.swap_hands}")
+        return self.swap_hands
 
     def _ensure_model_exists(self):
         if not os.path.exists(self.model_path):
@@ -157,8 +162,9 @@ class DualHandTracker:
             for lms, handedness_list in zip(result.hand_landmarks, result.handedness):
                 raw_label = handedness_list[0].category_name
 
-                # In mirrored camera view, invert label so user's physical right hand is "Right"
-                if self.mirrored_camera:
+                # By default, keep raw_label (Left=Left, Right=Right).
+                # If swap_hands is enabled, invert it.
+                if self.swap_hands:
                     actual_label = "Right" if raw_label == "Left" else "Left"
                 else:
                     actual_label = raw_label

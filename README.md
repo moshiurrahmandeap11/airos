@@ -40,6 +40,8 @@ python main.py
 | **Right Hand** | ✌️ Middle + Thumb Pinch | Right Click |
 | **Right Hand** | ✌️ Index + Middle Together | Scroll Up / Down |
 | **Right Hand** | ✌️ Peace Sign | Switch Applications (`Alt+Tab` / `Cmd+Tab`) |
+| **Right Hand** | 🖐️ 3 Fingers Swipe Left | **Switch Desktop Left** (`Ctrl+Win+Left`) ⬅️ |
+| **Right Hand** | 🖐️ 3 Fingers Swipe Right| **Switch Desktop Right** (`Ctrl+Win+Right`) ➡️ |
 | **Left Hand** | 🖐️ Open Palm facing camera | Show Floating App Launcher Dock |
 | **Left + Right**| 🖐️ Dock Open + 👉 Point & 👌 Pinch | Launch Hovered App |
 | **Left Hand** | ✌️ Peace Sign | Toggle Virtual Air Keyboard |

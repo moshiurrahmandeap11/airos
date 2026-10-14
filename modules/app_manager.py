@@ -138,3 +138,61 @@ class AppManager:
         except Exception as e:
             print(f"[AppManager] Error showing desktop: {e}")
             return False
+
+    def switch_desktop_left(self) -> bool:
+        """Switches to the previous virtual desktop (Ctrl+Win+Left on Windows)."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.40:
+            return False
+
+        try:
+            if self.os_type == "mac":
+                pyautogui.hotkey("ctrl", "left")
+            elif self.os_type == "linux":
+                pyautogui.hotkey("ctrl", "alt", "left")
+            else:
+                # Windows: Ctrl + Win + Left (Extended Arrow Key)
+                import ctypes
+                user32 = ctypes.windll.user32
+                user32.keybd_event(0x11, 0, 0, 0)                      # Ctrl Down
+                user32.keybd_event(0x5B, 0, 0, 0)                      # Win Down
+                user32.keybd_event(0x25, 0, 0x0001, 0)                 # Left Arrow Down (Extended)
+                user32.keybd_event(0x25, 0, 0x0001 | 0x0002, 0)        # Left Arrow Up
+                user32.keybd_event(0x5B, 0, 0x0002, 0)                 # Win Up
+                user32.keybd_event(0x11, 0, 0x0002, 0)                 # Ctrl Up
+
+            self.last_action_time = curr_time
+            print("[AppManager] Switched Desktop LEFT")
+            return True
+        except Exception as e:
+            print(f"[AppManager] Error switching desktop left: {e}")
+            return False
+
+    def switch_desktop_right(self) -> bool:
+        """Switches to the next virtual desktop (Ctrl+Win+Right on Windows)."""
+        curr_time = time.time()
+        if curr_time - self.last_action_time < 0.40:
+            return False
+
+        try:
+            if self.os_type == "mac":
+                pyautogui.hotkey("ctrl", "right")
+            elif self.os_type == "linux":
+                pyautogui.hotkey("ctrl", "alt", "right")
+            else:
+                # Windows: Ctrl + Win + Right (Extended Arrow Key)
+                import ctypes
+                user32 = ctypes.windll.user32
+                user32.keybd_event(0x11, 0, 0, 0)                      # Ctrl Down
+                user32.keybd_event(0x5B, 0, 0, 0)                      # Win Down
+                user32.keybd_event(0x27, 0, 0x0001, 0)                 # Right Arrow Down (Extended)
+                user32.keybd_event(0x27, 0, 0x0001 | 0x0002, 0)        # Right Arrow Up
+                user32.keybd_event(0x5B, 0, 0x0002, 0)                 # Win Up
+                user32.keybd_event(0x11, 0, 0x0002, 0)                 # Ctrl Up
+
+            self.last_action_time = curr_time
+            print("[AppManager] Switched Desktop RIGHT")
+            return True
+        except Exception as e:
+            print(f"[AppManager] Error switching desktop right: {e}")
+            return False

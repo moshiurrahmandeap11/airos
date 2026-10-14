@@ -128,7 +128,9 @@ When the virtual keyboard is activated:
 | Action | Hand Gesture | Mechanism |
 | :--- | :--- | :--- |
 | **Close Active Window**| 🦅 Five-finger claw closing rapidly into a fist | Sends `Alt + F4` (Win/Linux) or `Cmd + Q` (macOS) |
-| **Switch Apps (Alt+Tab)**| ↔️ Horizontal hand swipe across camera frame | Triggers native task switcher (`Alt+Tab` / `Cmd+Tab`) |
+| **Switch Apps (Alt+Tab)**| ✌️ Peace gesture with Right Hand | Triggers native task switcher (`Alt+Tab` / `Cmd+Tab`) |
+| **Switch Virtual Desktop Left**| 🖐️ Right Hand 3 fingers (Index+Middle+Ring) Swipe Left | Sends `Ctrl + Win + Left` (Win) or `Ctrl + Left` (macOS) ⬅️ |
+| **Switch Virtual Desktop Right**| 🖐️ Right Hand 3 fingers (Index+Middle+Ring) Swipe Right | Sends `Ctrl + Win + Right` (Win) or `Ctrl + Right` (macOS) ➡️ |
 | **Show Desktop** | ⬇️ Both hands open, swiped downward | Sends `Win + D` (Win) or `Cmd + F3` (macOS) |
 
 ---

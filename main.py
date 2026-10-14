@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from core.camera import CameraManager
-from core.gestures import GestureRecognizer, GestureType
+from core.gestures import GestureRecognizer, GestureType, SwipeTracker
 from core.tracker import DualHandTracker, HandLandmarkIndex
 from modules.app_manager import AppManager
 from modules.keyboard_virtual import VirtualKeyboardManager
@@ -35,6 +35,7 @@ def main():
     media_ctrl = MediaController()
     keyboard_mgr = VirtualKeyboardManager(frame_w, frame_h)
     hud = HUDOverlay(frame_w, frame_h)
+    desktop_swipe_tracker = SwipeTracker(displacement_threshold=0.08, time_window=0.38, cooldown=0.55)
 
     # State Variables
     is_sleep_mode = False
@@ -90,19 +91,8 @@ def main():
         right_gesture = GestureRecognizer.classify(right_hand)
 
         # -------------------------------------------------------------
-        # 1. Safety Sleep Toggle (Hold Left or Right Fist for >1.5s)
+        # 1. Safety Sleep Mode Check (Manual toggle via 'S' key or deliberate hold)
         # -------------------------------------------------------------
-        either_fist = (left_gesture == GestureType.FIST) or (right_gesture == GestureType.FIST)
-        if either_fist:
-            if fist_start_time is None:
-                fist_start_time = curr_time
-            elif curr_time - fist_start_time > 1.5:
-                is_sleep_mode = not is_sleep_mode
-                fist_start_time = None
-                hud.show_toast(f"SAFETY: {'SLEEP' if is_sleep_mode else 'ACTIVE'}")
-        else:
-            fist_start_time = None
-
         mode_name = "Sleep" if is_sleep_mode else ("Keyboard" if keyboard_mgr.is_active else "Mouse")
 
         # Draw hand skeletons for feedback
@@ -111,13 +101,29 @@ def main():
         if right_hand:
             tracker.draw_landmarks(frame, right_hand)
 
-        # If asleep, draw banner and skip inputs
+        # If asleep, draw clear wake-up prompt and skip processing
         if is_sleep_mode:
             hud.draw_top_bar(frame, fps, "SLEEP (PAUSED)", left_gesture.value, right_gesture.value)
+            hud.draw_camera_alert(
+                frame,
+                "CONTROLLER IS PAUSED (SLEEP MODE)",
+                [
+                    "Press 'S' on your keyboard to resume active control.",
+                    "Press 'H' to swap Left and Right hand mapping.",
+                    "Press 'Q' or ESC to quit.",
+                ],
+            )
             hud.draw_toasts(frame)
             cv2.imshow("Vision Pro Hand-OS Controller", frame)
-            if cv2.waitKey(1) & 0xFF in (27, ord("q")):
+            key = cv2.waitKey(1) & 0xFF
+            if key in (27, ord("q")):
                 break
+            elif key == ord("s"):
+                is_sleep_mode = False
+                hud.show_toast("CONTROLLER ACTIVE")
+            elif key == ord("h"):
+                swapped = tracker.toggle_swap_hands()
+                hud.show_toast(f"HANDS SWAPPED: {'INVERTED' if swapped else 'NORMAL'}")
             continue
 
         # -------------------------------------------------------------
@@ -171,13 +177,37 @@ def main():
                     if app_mgr.launch_app(hovered_app):
                         hud.show_toast(f"LAUNCHED: {hovered_app.upper()}", duration=1.5)
 
+            # ---------------------------------------------------------
+            # 3-Finger Swipe: Virtual Desktop Switch (Left / Right)
+            # Detects 3 fingers on EITHER hand for zero confusion!
+            # ---------------------------------------------------------
+            three_finger_hand = None
+            if right_gesture == GestureType.THREE_FINGERS:
+                three_finger_hand = right_hand
+            elif left_gesture == GestureType.THREE_FINGERS:
+                three_finger_hand = left_hand
+
+            is_three_fingers = (three_finger_hand is not None)
+            if is_three_fingers:
+                hand_x = three_finger_hand.points_norm[HandLandmarkIndex.MIDDLE_FINGER_MCP][0]
+                swipe_dir = desktop_swipe_tracker.update(hand_x, True, curr_time)
+
+                if swipe_dir == "LEFT":
+                    if app_mgr.switch_desktop_left():
+                        hud.show_toast("DESKTOP: PREV (LEFT) ⬅️", duration=1.4)
+                elif swipe_dir == "RIGHT":
+                    if app_mgr.switch_desktop_right():
+                        hud.show_toast("DESKTOP: NEXT (RIGHT) ➡️", duration=1.4)
+            else:
+                desktop_swipe_tracker.update(0.5, False, curr_time)
+
             # Mouse Cursor & Gesture Actions (Driven by Right Hand)
             is_pinching_idx = right_gesture == GestureType.PINCH_INDEX
             is_pinching_mid = right_gesture == GestureType.PINCH_MIDDLE
             is_scrolling = right_gesture == GestureType.SCROLL
 
-            # Only move OS cursor if not currently interacting with the Dock
-            if not (is_dock_open and hovered_app):
+            # Move OS cursor only if not in Dock and not performing a 3-finger desktop swipe
+            if not (is_dock_open and hovered_app) and not is_three_fingers:
                 m_status = mouse_ctrl.update(
                     right_hand,
                     is_pinching_index=is_pinching_idx,
@@ -204,7 +234,7 @@ def main():
         cv2.imshow("Vision Pro Hand-OS Controller", frame)
 
         # Keyboard shortcuts on the PC window:
-        # 'k' toggles virtual keyboard, 'q' or ESC exits
+        # 'k' toggles virtual keyboard, 's' toggles sleep, 'h' swaps hands, 'q' or ESC exits
         key = cv2.waitKey(1) & 0xFF
         if key in (27, ord("q")):
             break
@@ -214,6 +244,9 @@ def main():
         elif key == ord("s"):
             is_sleep_mode = not is_sleep_mode
             hud.show_toast(f"SAFETY: {'SLEEP' if is_sleep_mode else 'ACTIVE'}")
+        elif key == ord("h"):
+            swapped = tracker.toggle_swap_hands()
+            hud.show_toast(f"HANDS SWAPPED: {'INVERTED' if swapped else 'NORMAL'}", duration=1.5)
 
     # Cleanup
     cam.release()
